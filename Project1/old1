@@ -1,0 +1,63 @@
+#include <stdio.h>
+#include <pthread.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <ctype.h>
+
+int sharedVar = 0;
+pthread_t thr;
+
+void SimpleThread(int);
+void * entry_point(int*);
+
+void SimpleThead(int which){
+    int num, val;
+
+    for (num = 0; num < 20; num++){
+        if( random() > RAND_MAX / 2){
+            usleep(500);
+        }
+        val = sharedVar;
+        printf("***thread %d sees value %d\n", which, val);
+        sharedVar = val + 1;
+    }
+
+    val = sharedVar;
+    printf("Thread %d sees final value %d\n", which, val);
+}
+
+/*void * entry_point(int *arg){
+    int *which_ptr = arg[0];
+    int which = &which_ptr;
+    SimpleThead(which);
+    return NULL;
+}*/
+
+int main(int argc, char * argv[]){
+    pthread_t *tid;
+    //check for valid command line arg.
+    if (argc != 2){
+        printf("Not enough arguments.");
+        return 0;
+    } else {
+        int n = atoi(argv[1]);
+        tid = (pthread_t*)malloc(sizeof(pthread_t) * atoi(argv[1]));
+        int *j = (int *)malloc(sizeof(int)*n);
+        for (int i = 0; i < n; i++){
+            j[i] = i;
+        }
+
+        for(int i = 0; i < n; i++){
+            pthread_create(&tid[i],NULL,SimpleThread,&j[i]);
+        }
+        for (int i = 0; i < n; i++){
+            pthread_join(tid[i],NULL);
+        }
+    }
+
+
+    /*for (int j = 0; j < which; j++){
+        SimpleThead(j);
+    }*/
+    return 0;
+}
